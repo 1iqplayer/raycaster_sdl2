@@ -1,7 +1,14 @@
 #include <SDL2/SDL.h>
-#include <common.h>
+#include <common.h>>
 class Render{
+	SDL_Renderer* renderer = NULL;
 public:
-	Render();
-	drawRect(SDL_Surface*, Rect rect);
-}
+	Render(SDL_Window *w);
+
+	void drawWall(int x, int s);
+	void render();
+	void fillBg(Uint8 r = 0, Uint8 g = 0, Uint8 b = 0);
+	void drawMap();
+	void drawPlayer(float x, float y, double dx, double dy);
+	void drawRays(int x, int y, double dir);
+};

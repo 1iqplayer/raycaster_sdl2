@@ -1,17 +1,11 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
-#include <rederer.h>
+#include <renderer.h>
 #include <common.h>
+#include <player.h>
 
 using namespace std;
-
-int screen_width = 800, 
-	screen_height = 500;
-
 SDL_Window* window = NULL;
-SDL_Surface* screenSurf = NULL;
-SDL_Surface* imgSurf = NULL;
-Render rend;
 
 bool init(){
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -22,58 +16,72 @@ bool init(){
 		"Raycaster", 
 		SDL_WINDOWPOS_UNDEFINED,
 		SDL_WINDOWPOS_UNDEFINED, 
-		screen_width, 
-		screen_height, 
+		WIDTH, 
+		HEIGHT, 
 		SDL_WINDOW_SHOWN);
-	if (window == NULL)
-		return false;
 
-	screenSurf = SDL_GetWindowSurface(window);
-	rend = Render();
 	return true;
 }
 
-void close(){
+void close(SDL_Window* w){
 	// Deallocate surfaces
-	SDL_FreeSurface(imgSurf);
-	imgSurf = NULL;
 
 	// Destory window
-	SDL_DestroyWindow(window);
-	window = NULL;
+	SDL_DestroyWindow(w);
 
 	// Quit SDL subsystems
 	SDL_Quit();
 }
 
-void loadMedia(const char* path){
-
-	imgSurf = SDL_LoadBMP(path);
-	if (imgSurf == NULL){
-		printf("Problem with loading media: %s\n", SDL_GetError());
-	}
-}
 
 int main(int argc, char* argv[]){
 	if (!init()){
 		printf("Problem with initialization: %s\n", SDL_GetError());
-		return -1;
+		return 1;
 	}
+	Render rend = Render(window);
 
-	loadMedia("test.bmp");
-	SDL_FillRect( screenSurf, NULL, SDL_MapRGB( screenSurf->format, 0xff, 0xff, 0xff ) );
+	// Game related
+	Player player = Player();
+	player.x = 100;
+	player.y = 200;
+	long int currTime = SDL_GetTicks();
+	long int lastTime = currTime;
+
 	
+	// Main loop and event handling
 	bool running = true;
 	while(running){
 		SDL_Event ev;
+		currTime = SDL_GetTicks();
 
+		if (currTime - lastTime >= fps){
+		lastTime = currTime;
+
+		// Handle events
 		while( SDL_PollEvent(&ev) != 0 ){
 			if(ev.type == SDL_QUIT)
 				running = false;
+			if(ev.type == SDL_KEYDOWN){
+				switch (ev.key.keysym.sym)
+				{
+				case SDLK_a: player.changeDir(-0.1); break;
+                case SDLK_d: player.changeDir(0.1); break;
+                case SDLK_UP:    player.y--;
+                case SDLK_DOWN:  player.y++;
+				}
+			}
 		}
-		SDL_UpdateWindowSurface(window);	
+		// Draw things
+		printf("player x:%f y:%f\n", player.x, player.y);
+		rend.fillBg(150, 150, 150);
+		rend.drawMap();
+		rend.drawRays(player.x, player.y, player.dir);
+		rend.drawPlayer(player.x, player.y, player.dx, player.dy);
+		rend.render();	
+	}
 	}
 	
-	close();
-	return 1;
+	close(window);
+	return 0;
 }
