@@ -2,8 +2,8 @@
 
 class Player{
 public:
-	float x, y, dx, dy, speed;
-	double dir;
+	double x, y, dx, dy, dir;
 	Player();
 	void changeDir(double dir);
+	void move(double sp);
 };

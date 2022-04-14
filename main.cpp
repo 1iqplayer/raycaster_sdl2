@@ -43,8 +43,8 @@ int main(int argc, char* argv[]){
 
 	// Game related
 	Player player = Player();
-	player.x = 100;
-	player.y = 200;
+	player.x = 2;
+	player.y = 2;
 	long int currTime = SDL_GetTicks();
 	long int lastTime = currTime;
 
@@ -67,13 +67,13 @@ int main(int argc, char* argv[]){
 				{
 				case SDLK_a: player.changeDir(-0.1); break;
                 case SDLK_d: player.changeDir(0.1); break;
-                case SDLK_UP:    player.y--;
-                case SDLK_DOWN:  player.y++;
+                case SDLK_w: player.move(.1); break;
+                case SDLK_s: player.move(-.1); break;
 				}
 			}
 		}
 		// Draw things
-		printf("player x:%f y:%f\n", player.x, player.y);
+		printf("player dir: %f\n", player.dir);
 		rend.fillBg(150, 150, 150);
 		rend.drawMap();
 		rend.drawRays(player.x, player.y, player.dir);

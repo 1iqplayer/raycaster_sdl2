@@ -3,7 +3,64 @@
 #include <common.h>
 #include <stdio.h>>
 #include <math.h>
+double castRay(double x, double y, double dir){
+	dVec start, rayLen, rayDir, scale;
+	iVec mapCheck, step;
+	mapCheck.x = x; mapCheck.y = y; // Integer value of position in map
+	
+	// Calculate ray direction vector
+	rayDir.x = cos(dir);  rayDir.y = sin(dir);
+	// Calculate step size in each direction
+	scale.x = sqrt(1 + (rayDir.y/rayDir.x)*(rayDir.y/rayDir.x));  scale.y = sqrt(1 + (rayDir.x/rayDir.y)*(rayDir.x/rayDir.y));
+	// Define stepping direction and inital rayLen
+	if (rayDir.x < 0)
+	{
+		step.x = -1;
+		rayLen.x = (x - double(mapCheck.x)) * scale.x;
+	}else
+	{
+		step.x = 1;
+		rayLen.x = (double(mapCheck.x + 1) - x) * scale.x;
+	}
+	if (rayDir.y < 0)
+	{
+		step.y = -1;
+		rayLen.y = (y - double(mapCheck.x)) * scale.y;
+	}else
+	{
+		step.y = 1;
+		rayLen.y = (double(mapCheck.y + 1) - y) * scale.y;
+	}
 
+	// Walking
+	double maxDistance = 100.0;
+	double distance = 0.0;
+	bool hit = false;
+
+	while (!hit and distance < maxDistance)
+	{
+		if (rayLen.x < rayLen.y)
+		{
+			mapCheck.x += step.x;
+			distance = rayLen.x;
+			rayLen.x += scale.x;
+		}
+		else
+		{
+			mapCheck.y += step.y;
+			distance = rayLen.y;
+			rayLen.y += scale.y;
+		}
+
+		if (mapCheck.x < MAP_W and mapCheck.x >= 0 and mapCheck.y < MAP_H and mapCheck.y >= 0)
+			if (map[mapCheck.y*MAP_W + mapCheck.x]) hit = true;
+	}
+
+	printf("scale x: %f  y:%f\nstep x: %i  y:%i\n distance: %f\n", scale.x, scale.y, step.x, step.y, distance);
+
+	// Endpoint vector
+	return distance;
+}
 Render::Render(SDL_Window *w){
 	printf("Renderer initialized!");
 	renderer = SDL_CreateRenderer(w, -1, 0);
@@ -26,35 +83,43 @@ void Render::fillBg(Uint8 r, Uint8 g, Uint8 b){
 void Render::render(){
 	SDL_RenderPresent(renderer);
 }
-void Render::drawPlayer(float x, float y, double dx, double dy){
+void Render::drawPlayer(double x, double y, double dx, double dy){
 	SDL_Rect plRect;
-	plRect.x = x -2;
-	plRect.y = y -2;
+	int plX = int(x*double(GRID_SIZE)),
+		plY = int(y*double(GRID_SIZE));
+	plRect.x = plX -2;
+	plRect.y = plY -2;
 	plRect.w = 5;
 	plRect.h = 5;
 
+	printf("playerpos: x:%i y:%i\n", plX, plY);
+
 	SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 	SDL_RenderFillRect(renderer, &plRect);
-	SDL_RenderDrawLine(renderer, int(x), int(y), int(x) + int(dx), int(y) + int(dy));
+	SDL_RenderDrawLine(renderer, plX, plY, plX + int(dx), plY + int(dy));
 }
-void Render::drawRays(int x, int y, double dir){
+void Render::drawRays(double x, double y, double dir){
 	SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-	for (int X=0; X<WIDTH; X++){
-		double rayDir = double(X)/double(WIDTH) * fov + dir - (fov/2);
+	for (int X=0; X<1; X++){
+		double rayDir =  dir;//double(X)/double(3) * fov + dir - (fov/2);
 
 		if (rayDir > PI*2) rayDir = rayDir - PI*2; if (rayDir < 0) rayDir = rayDir + PI*2;
-		double rayDX = double(x) + cos(rayDir) * 500;
-		double rayDY = double(y) + sin(rayDir) * 500;
-		SDL_RenderDrawLine(renderer, x, y, int(rayDX), int(rayDY));
+		
+		double distance = castRay(x, y, rayDir);
+		int plX = int(x*double(GRID_SIZE)),
+			plY = int(y*double(GRID_SIZE)),
+			rayX = plX + cos(dir)*(distance*double(GRID_SIZE)),
+			rayY = plY + sin(dir)*(distance*double(GRID_SIZE));
+		SDL_RenderDrawLine(renderer, plX, plY, rayX, rayY);
 	}
 }
 void Render::drawMap(){
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
 	SDL_Rect rect;
-	rect.w = 40;
-	rect.h = 40;
-	for (int y=0; y<MAP_H; y++)
+	rect.w = GRID_SIZE;
+	rect.h = GRID_SIZE;
+	for (int y=0; y<MAP_W; y++)
 	{
 		for (int x=0; x<MAP_W; x++){
 			rect.x = (rect.w*x);

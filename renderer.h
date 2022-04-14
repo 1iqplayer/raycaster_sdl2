@@ -9,6 +9,6 @@ public:
 	void render();
 	void fillBg(Uint8 r = 0, Uint8 g = 0, Uint8 b = 0);
 	void drawMap();
-	void drawPlayer(float x, float y, double dx, double dy);
-	void drawRays(int x, int y, double dir);
+	void drawPlayer(double x, double y, double dx, double dy);
+	void drawRays(double x, double y, double dir);
 };
