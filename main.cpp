@@ -73,7 +73,6 @@ int main(int argc, char* argv[]){
 			}
 		}
 		// Draw things
-		printf("player dir: %f\n", player.dir);
 		rend.fillBg(150, 150, 150);
 		rend.drawMap();
 		rend.drawRays(player.x, player.y, player.dir);
