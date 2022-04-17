@@ -47,6 +47,9 @@ int main(int argc, char* argv[]){
 	player.y = 2;
 	long int currTime = SDL_GetTicks();
 	long int lastTime = currTime;
+	bool showMap = false,
+		 showPlayer = false;
+	bool move[] = {false, false, false, false, false, false};
 
 	
 	// Main loop and event handling
@@ -62,21 +65,51 @@ int main(int argc, char* argv[]){
 		while( SDL_PollEvent(&ev) != 0 ){
 			if(ev.type == SDL_QUIT)
 				running = false;
-			if(ev.type == SDL_KEYDOWN){
-				switch (ev.key.keysym.sym)
-				{
-				case SDLK_a: player.changeDir(-0.1); break;
-                case SDLK_d: player.changeDir(0.1); break;
-                case SDLK_w: player.move(.1); break;
-                case SDLK_s: player.move(-.1); break;
-				}
+			if(ev.type == SDL_KEYDOWN or ev.type == SDL_KEYUP){
+				const Uint8 *keys = SDL_GetKeyboardState(NULL);
+				if (keys[SDL_SCANCODE_A])
+					move[3] = true; else move[3] = false; 
+				if (keys[SDL_SCANCODE_S])
+					move[2] = true; else move[2] = false;
+				if (keys[SDL_SCANCODE_D])
+					move[1] = true; else move[1] = false;
+				if (keys[SDL_SCANCODE_W])
+					move[0] = true; else move[0] = false;
+				if (keys[SDL_SCANCODE_RIGHT])
+					move[4] = true; else move[4] = false;
+				if (keys[SDL_SCANCODE_LEFT])
+					move[5] = true; else move[5] = false;
+				if(ev.type == SDL_KEYDOWN){
+					if (ev.key.keysym.sym == SDLK_o)
+						showMap = !showMap;
+					if (ev.key.keysym.sym == SDLK_p)
+						showPlayer = !showPlayer;
+				}				
 			}
 		}
+		// Move player
+		if (move[0])
+			player.move(.12);
+		if (move[1])
+			player.move(.12, 1);
+		if (move[2])
+			player.move(.12, 2);
+		if (move[3])
+			player.move(.12, 3);
+		if (move[4])
+			player.changeDir(.1);
+		if (move[5])
+			player.changeDir(-.1);
 		// Draw things
 		rend.fillBg(150, 150, 150);
-		rend.drawMap();
-		rend.drawRays(player.x, player.y, player.dir);
-		rend.drawPlayer(player.x, player.y, player.dx, player.dy);
+		rend.drawWall(player.x, player.y, player.dir);
+		if (showMap)
+			rend.drawMap();
+		if (showPlayer)
+		{
+			rend.drawRays(player.x, player.y, player.dir);
+			rend.drawPlayer(player.x, player.y, player.dx, player.dy);
+		}
 		rend.render();	
 	}
 	}
